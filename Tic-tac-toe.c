@@ -1,11 +1,14 @@
 // Denis Danilov
 
-#include <ncurses.h>
+#include <PDCurses-master/curses.h>
+//#include <ncurses.h>
 #include <stdbool.h>
 
 #define size 3
 #define start_row 2
 #define start_col 1
+#define delta_x 2
+#define delta_y 4
 
 typedef struct Game
 {
@@ -17,9 +20,9 @@ Game game;
 void highlightWinner(short x1, short y1, short x2, short y2, short x3, short y3) {
     attrset(A_BLINK);
     attrset(COLOR_PAIR(3));
-    mvaddch((x1 * 2) + start_row, (y1 * 4) + start_col, game.board[x1][y1]);
-    mvaddch((x2 * 2) + start_row, (y2 * 4) + start_col, game.board[x2][y2]);
-    mvaddch((x3 * 2) + start_row, (y3 * 4) + start_col, game.board[x3][y3]);
+    mvaddch((x1 * delta_x) + start_row, (y1 * delta_y) + start_col, game.board[x1][y1]);
+    mvaddch((x2 * delta_x) + start_row, (y2 * delta_y) + start_col, game.board[x2][y2]);
+    mvaddch((x3 * delta_x) + start_row, (y3 * delta_y) + start_col, game.board[x3][y3]);
     attroff(A_BLINK);
     attroff(COLOR_PAIR(3));
     refresh();
@@ -98,8 +101,8 @@ bool end() {
 }
 
 void updateBoard(short x, short y) {
-    mvaddch((x * 2) + start_row, (y * 4) + start_col, game.board[x][y]); // Add new symbol on the position
-    move((x * 2) + start_row, (y * 4) + start_col); // Move the cursor to this position
+    mvaddch((x * delta_x) + start_row, (y * 4) + start_col, game.board[x][y]); // Add new symbol on the position
+    move((x * delta_x) + start_row, (y * 4) + start_col); // Move the cursor to this position
     refresh();
 }
 
@@ -127,7 +130,6 @@ void resetBoard() {
 int main(void) {
     short x = 1, y = 1; // Cursor position
     bool X_move = true; // Moving player information
-
     WINDOW* win = initscr(); // Screen initialization
     noecho();
     cbreak();
@@ -142,7 +144,7 @@ int main(void) {
     
     resetBoard();
     printBoard();
-    move((1 * 2) + start_row, (1 * 4) + start_col); // Move the cursor to the starting position
+    move((1 * delta_x) + start_row, (1 * delta_y) + start_col); // Move the cursor to the starting position
 
     while (true)
     {
@@ -161,7 +163,7 @@ int main(void) {
                 {
                     y++;
                 }
-                move((x * 2) + start_row, (y * 4) + start_col); // Moving the cursor to the next position
+                move((x * delta_x) + start_row, (y * delta_y) + start_col); // Moving the cursor to the next position
                 break;
                 
             case KEY_LEFT:
@@ -169,7 +171,7 @@ int main(void) {
                 {
                     y--;
                 }
-                move((x * 2) + start_row, (y * 4) + start_col); // Moving the cursor to the next position
+                move((x * delta_x) + start_row, (y * delta_y) + start_col); // Moving the cursor to the next position
                 break;
 
             case KEY_UP:
@@ -177,7 +179,7 @@ int main(void) {
                 {
                     x--;
                 }
-                move((x * 2) + start_row, (y * 4) + start_col); // Moving the cursor to the next position
+                move((x * delta_x) + start_row, (y * delta_y) + start_col); // Moving the cursor to the next position
                 break;
 
             case KEY_DOWN:
@@ -185,7 +187,7 @@ int main(void) {
                 {
                     x++;
                 }
-                move((x * 2) + start_row, (y * 4) + start_col); // Moving the cursor to the next position
+                move((x * delta_x) + start_row, (y * delta_y) + start_col); // Moving the cursor to the next position
                 break;
 
             case 10: // ENTER key
