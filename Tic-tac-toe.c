@@ -1,7 +1,7 @@
 // Denis Danilov
 
-#include <PDCurses-master/curses.h>
-//#include <ncurses.h>
+//#include <PDCurses-master/curses.h>
+#include <ncurses.h>
 #include <stdbool.h>
 
 #define size 3
@@ -44,7 +44,7 @@ void printDraw() {
     attrset(COLOR_PAIR(2));
     mvaddstr(8, 0, "Draw!\n");
     attroff(A_BOLD);
-    attroff(COLOR_PAIR(1));
+    attroff(COLOR_PAIR(2));
     addstr("Press any key to restart:\n");
     refresh();
 }
