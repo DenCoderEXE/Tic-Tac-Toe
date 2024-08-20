@@ -82,18 +82,31 @@ void printDraw(void) {
     refresh();
 }
 
-bool end(void) {
+char end(short pos[6]) {
     for (short i = 0; i < 8; i++)
     {
         if ((game.board[winCombinations[i][0][0]][winCombinations[i][0][1]] == game.board[winCombinations[i][1][0]][winCombinations[i][1][1]] && 
              game.board[winCombinations[i][1][0]][winCombinations[i][1][1]] == game.board[winCombinations[i][2][0]][winCombinations[i][2][1]]) && 
              game.board[winCombinations[i][2][0]][winCombinations[i][2][1]] != ' ')
         {
-            highlightWinner(winCombinations[i][0][0], winCombinations[i][0][1], 
-                            winCombinations[i][1][0], winCombinations[i][1][1], 
-                            winCombinations[i][2][0], winCombinations[i][2][1]);
-            printWinner(game.board[winCombinations[i][2][0]][winCombinations[i][2][1]]);
-            return true;
+            pos[0] = winCombinations[i][0][0];
+            pos[1] = winCombinations[i][0][1];
+            pos[2] = winCombinations[i][1][0];
+            pos[3] = winCombinations[i][1][1];
+            pos[4] = winCombinations[i][2][0];
+            pos[5] = winCombinations[i][2][1];
+            // highlightWinner(winCombinations[i][0][0], winCombinations[i][0][1], 
+            //                 winCombinations[i][1][0], winCombinations[i][1][1], 
+            //                 winCombinations[i][2][0], winCombinations[i][2][1]);
+            // printWinner(game.board[winCombinations[i][2][0]][winCombinations[i][2][1]]);
+            if (game.board[winCombinations[i][1][0]][winCombinations[i][1][1]] == game.player1)
+            {
+                return game.player1;
+            }
+            else
+            {
+                return game.player2;
+            }
         }
     }
 
@@ -110,10 +123,9 @@ bool end(void) {
     }
     if (n == 0)
     {
-        printDraw();
-        return true;
+        return 'D';
     }
-    return false;
+    return 'N';
 }
 
 void updateBoard(void) {
@@ -374,19 +386,77 @@ void playersMove(WINDOW* win) {
     }
 }
 
-short minimax(short depth, bool isMaximizing) {
-    short result = checkWinner();
-
-    if (isMaximizing)
+short scores(char result) {
+    if (result == game.player2)
     {
-        
+        return 1;
     }
-    
-    return 1;
+    else if (result == game.player1)
+    {
+        return -1;
+    }
+    else if (result == 'D')
+    {
+        return 0;
+    }
 }
 
-void computersMove(win) {
-    short bestMove[2] = {-1, -1};
+short minimax(short depth, bool isMaximizing) {
+    short pos[6];
+    char result = end(pos);
+    if (result != 'N')
+    {
+        return scores(result);
+    }
+    
+    if (isMaximizing) // Maximizing
+    {
+        short bestScore = -INF;
+        for (short row = 0; row < size; row++) // Check all possible moves
+        {
+            for (short col = 0; col < size; col++)
+            {
+                if (game.board[row][col] == ' ')
+                {
+                    game.board[row][col] = game.player2;
+                    short score = minimax(depth + 1, false);
+                    game.board[row][col] = ' ';
+                    if (score > bestScore)
+                    {
+                        bestScore = score;
+                    }
+                }
+            }
+        }
+        return bestScore;
+    }
+    else // Minimizing
+    {
+        short bestScore = INF;
+        for (short row = 0; row < size; row++) // Check all possible moves
+        {
+            for (short col = 0; col < size; col++)
+            {
+                if (game.board[row][col] == ' ')
+                {
+                    game.board[row][col] = game.player1;
+                    short score = minimax(depth + 1, true);
+                    game.board[row][col] = ' ';
+                    if (score < bestScore)
+                    {
+                        bestScore = score;
+                    }
+                }
+            }
+        }
+        return bestScore;
+    }
+    
+    // return 1;
+}
+
+void computersMove(WINDOW* win) {
+    short bestMove[2] = {0, 0};
     short bestScore = -INF;
     for (short row = 0; row < size; row++) // Check all possible moves
     {
@@ -395,7 +465,7 @@ void computersMove(win) {
             if (game.board[row][col] == ' ') // Is the spot is available?
             {
                 game.board[row][col] = game.player2;
-                short score = minimax(0, true);
+                short score = minimax(0, false);
                 game.board[row][col] = ' ';
                 if (score > bestScore)
                 {
@@ -443,13 +513,28 @@ void gameEnd(WINDOW* win) {
 void p2p(WINDOW* win) {
     while (true)
     {
-        if (!end()) // End-of-game check
+        short pos[6];
+        char status = end(pos);
+        if (status == game.player1)
+        {
+            highlightWinner(pos[0], pos[1], pos[2], pos[3], pos[4], pos[5]);
+            printWinner(game.player1);
+            gameEnd(win);
+        }
+        else if (status == game.player2)
+        {
+            highlightWinner(pos[0], pos[1], pos[2], pos[3], pos[4], pos[5]);
+            printWinner(game.player2);
+            gameEnd(win);
+        }
+        else if (status == 'D')
+        {
+            printDraw();
+            gameEnd(win);
+        }
+        else if (status == 'N')
         {
             playersMove(win);
-        }
-        else
-        {
-            gameEnd(win);
         }
     }
 }
@@ -457,7 +542,26 @@ void p2p(WINDOW* win) {
 void pve(WINDOW* win) {
     while (true)
     {
-        if (!end()) // End-of-game check
+        short pos[6];
+        char status = end(pos);
+        if (status == game.player1)
+        {
+            highlightWinner(pos[0], pos[1], pos[2], pos[3], pos[4], pos[5]);
+            printWinner(game.player1);
+            gameEnd(win);
+        }
+        else if (status == game.player2)
+        {
+            highlightWinner(pos[0], pos[1], pos[2], pos[3], pos[4], pos[5]);
+            printWinner(game.player2);
+            gameEnd(win);
+        }
+        else if (status == 'D')
+        {
+            printDraw();
+            gameEnd(win);
+        }
+        else if (status == 'N')
         {
             if (!game.p1Move)
             {
@@ -467,10 +571,6 @@ void pve(WINDOW* win) {
             {
                 playersMove(win);
             }
-        }
-        else
-        {
-            gameEnd(win);
         }
     }
 }
