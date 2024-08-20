@@ -13,6 +13,13 @@
 
 bool menu(WINDOW* win);
 
+typedef enum Difficulty
+{
+    easy,
+    normal,
+    hard
+} Difficulty;
+
 typedef struct Game
 {
     char board[size][size];
@@ -23,6 +30,7 @@ typedef struct Game
     bool p2p_mode;
     bool gameStopped;
     bool p1Move;
+    Difficulty difficulty;
 } Game;
 
 Game game;
@@ -451,12 +459,10 @@ short minimax(short depth, bool isMaximizing) {
         }
         return bestScore;
     }
-    
-    // return 1;
 }
 
-void computersMove(WINDOW* win) {
-    short bestMove[2] = {0, 0};
+void bestMove() {
+    short bestMove[2] = {-1, -1};
     short bestScore = -INF;
     for (short row = 0; row < size; row++) // Check all possible moves
     {
@@ -484,6 +490,64 @@ void computersMove(WINDOW* win) {
     game.cursor_x = bestMove[0];
     game.cursor_y = bestMove[1];
     updateBoard();
+}
+
+void randomMove() {
+    short randomMove[2] = {-1, -1};
+    while (true)
+    {
+        randomMove[0] = rand() % 3;
+        randomMove[1] = rand() % 3;
+        if (game.board[randomMove[0]][randomMove[1]] == ' ')
+        {
+            game.board[randomMove[0]][randomMove[1]] = game.player2;
+            break;
+        }
+    }
+    game.p1Move = true;
+    attrset(A_UNDERLINE);
+    mvaddch(3, 13, game.player1); // Information on who is moving now
+    attroff(A_UNDERLINE);
+    game.cursor_x = randomMove[0];
+    game.cursor_y = randomMove[1];
+    updateBoard();
+}
+
+void computersMove() {
+    short value = rand() % 10;
+    if (game.difficulty == hard)
+    {
+        if (value > 8)
+        {
+            randomMove();
+        }
+        else
+        {
+            bestMove();
+        }
+    }
+    else if (game.difficulty == normal)
+    {
+        if (value > 6)
+        {
+            randomMove();
+        }
+        else
+        {
+            bestMove();
+        }
+    }
+    else if (game.difficulty == easy)
+    {
+        if (value > 4)
+        {
+            randomMove();
+        }
+        else
+        {
+            bestMove();
+        }
+    }
 }
 
 void gameEnd(WINDOW* win) {
@@ -565,7 +629,7 @@ void pve(WINDOW* win) {
         {
             if (!game.p1Move)
             {
-                computersMove(win);
+                computersMove();
             }
             else
             {
@@ -597,15 +661,37 @@ void newGame(WINDOW* win) {
 void highlightActiveSettingsOption(short option, WINDOW* win) {
     curs_set(0);
     mvaddch(1, 16, ' ');
-    mvaddch(1, 20, ' ');
+    mvaddch(1, 20, ' '); // 1.Player
+
     mvaddch(2, 16, ' ');
-    mvaddch(2, 20, ' ');
-    mvaddch(3, 7, ' ');
-    mvaddch(3, 12, ' ');
+    mvaddch(2, 20, ' '); // PvP mode
+
+    mvaddch(3, 16, ' ');
+    if (game.difficulty != normal)
+    {
+        mvaddch(3, 23, ' '); // Difficulty
+    }
+    mvaddch(3, 25, ' ');
+
+    mvaddch(4, 7, ' ');
+    mvaddch(4, 12, ' '); // Back
+
     if (option < 2)
     {
         mvaddch(option + 1, 16, '<');
         mvaddch(option + 1, 20, '>');
+    }
+    else if (option == 2)
+    {
+        mvaddch(option + 1, 16, '<');
+        if (game.difficulty == normal)
+        {
+            mvaddch(option + 1, 25, '>');
+        }
+        else
+        {
+            mvaddch(option + 1, 23, '>');
+        }
     }
     else
     {
@@ -614,7 +700,7 @@ void highlightActiveSettingsOption(short option, WINDOW* win) {
     }
 }
 
-void settingsChange(short option) {
+void settingsChange(short option, char direction) {
     curs_set(0);
     switch (option)
     {
@@ -623,7 +709,6 @@ void settingsChange(short option) {
         {
             game.player1 = 'O';
             game.player2 = 'X';
-            game.gameStopped = false;
             mvaddch(1, 18, 'O');
             refresh();
         }
@@ -631,7 +716,6 @@ void settingsChange(short option) {
         {
             game.player1 = 'X';
             game.player2 = 'O';
-            game.gameStopped = false;
             mvaddch(1, 18, 'X');
             refresh();
         }
@@ -641,16 +725,56 @@ void settingsChange(short option) {
         if (game.p2p_mode)
         {
             game.p2p_mode = false;
-            game.gameStopped = false;
             mvaddch(2, 18, 'N');
             refresh();
         }
         else
         {
             game.p2p_mode = true;
-            game.gameStopped = false;
             mvaddch(2, 18, 'Y');
             refresh();
+        }
+        break;
+
+    case 2:
+        if (direction == 'L')
+        {
+            if (game.difficulty == 0) // Easy
+            {
+                game.difficulty = 2; // Hard
+            }
+            else
+            {
+                game.difficulty--; // Decrease
+            }
+        }
+        else
+        {
+            if (game.difficulty == 2) // Hard
+            {
+                game.difficulty = 0; // Easy
+            }
+            else
+            {
+                game.difficulty++; // Increase
+            }
+        }        
+        if (game.difficulty == normal)
+        {
+            mvaddstr(option + 1, 16, "<[Normal]>");
+        }
+        else
+        {
+            mvaddstr(option + 1, 16, "          ");
+            mvaddstr(option + 1, 16, "<[    ]>");
+            if (game.difficulty == easy)
+            {
+                mvaddstr(option + 1, 18, "Easy");
+            }
+            else
+            {
+                mvaddstr(option + 1, 18, "Hard");
+            }
         }
         break;
 
@@ -662,6 +786,7 @@ void settingsChange(short option) {
 bool settings(WINDOW* win) {
     char tmp_player1 = game.player1;
     bool tmp_pvp_mode = game.p2p_mode;
+    Difficulty tmp_difficulty = game.difficulty;
     curs_set(0);
     clear();
     addstr("      Settings:\n");
@@ -669,9 +794,31 @@ bool settings(WINDOW* win) {
     addstr("\t<[");
     addch(game.player1);
     addstr("]>\n");
-    addstr("PvP mode");
-    addstr("\t [Y] \n");
-    addstr("\tBack\t");
+    addstr("PvP mode\t [");
+    if (game.p2p_mode)
+    {
+        addch('Y');
+    }
+    else
+    {
+        addch('N');
+    }
+    addstr("] \n");
+    addstr("Difficulty\t [");
+    if (game.difficulty == easy)
+    {
+        addstr("Easy");
+    }
+    else if (game.difficulty == normal)
+    {
+        addstr("Normal");
+    }
+    else if (game.difficulty == hard)
+    {
+        addstr("Hard");
+    }
+    addstr("] \n");
+    addstr("\tBack");
     refresh();
     short option = 0;
     while (true)
@@ -680,7 +827,7 @@ bool settings(WINDOW* win) {
         switch (pressed)
         {
         case KEY_DOWN:
-            if (option == 2)
+            if (option == 3)
             {
                 option = 0;
             }
@@ -694,7 +841,7 @@ bool settings(WINDOW* win) {
         case KEY_UP:
             if (option == 0)
             {
-                option = 2;
+                option = 3;
             }
             else
             {
@@ -704,12 +851,14 @@ bool settings(WINDOW* win) {
             break;
 
         case KEY_LEFT:
+            settingsChange(option, 'L');
+            break;
         case KEY_RIGHT:
-            settingsChange(option);
+            settingsChange(option, 'R');
             break;
 
         case 10: // Enter
-            if (option == 2)
+            if (option == 3)
             {
                 goto exit_settings;
             }
@@ -724,8 +873,9 @@ bool settings(WINDOW* win) {
         }
     }
 exit_settings:
-    if (tmp_player1 != game.player1 || tmp_pvp_mode != game.p2p_mode)
+    if (tmp_player1 != game.player1 || tmp_pvp_mode != game.p2p_mode || tmp_difficulty != game.difficulty)
     {
+        game.gameStopped = false;
         return true;
     }
     else
@@ -858,7 +1008,10 @@ restart:
                     break;
 
                 case 1: // Settings
-                    settings(win);
+                    if (settings(win)) // If need to restart menu
+                    {
+                        goto restart;
+                    }
                     printMenu();
                     if (game.gameStopped)
                     {
@@ -901,7 +1054,8 @@ void main(void) {
     game.player1 = 'X';
     game.player2 = 'O';
     game.gameStopped = false;
-    game.p2p_mode = true;
+    game.p2p_mode = false;
+    game.difficulty = normal;
 
     if (menu(win))
     {
