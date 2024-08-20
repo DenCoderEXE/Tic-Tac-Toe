@@ -4,7 +4,7 @@
 #include <ncurses.h>
 #include <stdbool.h>
 #include <stdlib.h>
-
+#define INF 999
 #define size 3
 #define start_row 1
 #define start_col 1
@@ -22,10 +22,21 @@ typedef struct Game
     short cursor_y;
     bool p2p_mode;
     bool gameStopped;
-    bool xMove;
+    bool p1Move;
 } Game;
 
 Game game;
+
+short winCombinations[8][3][2] = {
+                                 {{0, 0}, {0, 1}, {0, 2}},
+                                 {{1, 0}, {1, 1}, {1, 2}},
+                                 {{2, 0}, {2, 1}, {2, 2}},
+                                 {{0, 0}, {1, 0}, {2, 0}},
+                                 {{0, 1}, {1, 1}, {2, 1}},
+                                 {{0, 2}, {1, 2}, {2, 2}},
+                                 {{0, 0}, {1, 1}, {2, 2}},
+                                 {{0, 2}, {1, 1}, {2, 0}}
+};
 
 void setCursor(void) {
     move((game.cursor_x * delta_x) + start_row, (game.cursor_y * delta_y) + start_col);
@@ -72,35 +83,18 @@ void printDraw(void) {
 }
 
 bool end(void) {
-    for (short row = 0; row < size; row++) // Checking for a combination in a row
+    for (short i = 0; i < 8; i++)
     {
-        if ((game.board[row][0] == game.board[row][1] && game.board[row][1] == game.board[row][2]) && game.board[row][0] != ' ')
+        if ((game.board[winCombinations[i][0][0]][winCombinations[i][0][1]] == game.board[winCombinations[i][1][0]][winCombinations[i][1][1]] && 
+             game.board[winCombinations[i][1][0]][winCombinations[i][1][1]] == game.board[winCombinations[i][2][0]][winCombinations[i][2][1]]) && 
+             game.board[winCombinations[i][2][0]][winCombinations[i][2][1]] != ' ')
         {
-            highlightWinner(row, 0, row, 1, row, 2);
-            printWinner(game.board[row][0]);
+            highlightWinner(winCombinations[i][0][0], winCombinations[i][0][1], 
+                            winCombinations[i][1][0], winCombinations[i][1][1], 
+                            winCombinations[i][2][0], winCombinations[i][2][1]);
+            printWinner(game.board[winCombinations[i][2][0]][winCombinations[i][2][1]]);
             return true;
         }
-    }
-    for (short col = 0; col < size; col++) // Checking for a combination in a column
-    {
-        if ((game.board[0][col] == game.board[1][col] && game.board[1][col] == game.board[2][col]) && game.board[0][col] != ' ')
-        {
-            highlightWinner(0, col, 1, col, 2, col);
-            printWinner(game.board[0][col]);
-            return true;
-        }
-    }
-    if (game.board[0][0] == game.board[1][1] && game.board[1][1] == game.board[2][2] && game.board[1][1] != ' ') // Checking for a combination in a primary diagonal
-    {
-        highlightWinner(0, 0, 1, 1, 2, 2);
-        printWinner(game.board[1][1]);
-        return true;
-    }
-    else if (game.board[0][2] == game.board[1][1] && game.board[1][1] == game.board[2][0] && game.board[1][1] != ' ') // Checking for a combination in a secondary diagonal
-    {
-        highlightWinner(0, 2, 1, 1, 2, 0);
-        printWinner(game.board[1][1]);
-        return true;
     }
 
     short n = 0;
@@ -133,7 +127,7 @@ void printBoard(void) {
     attrset(A_BOLD);
     mvaddstr(0, 0, "Tic-Tac-Toe\n");
     mvaddstr(1, 0, "   |   |   \n---|---|---\n   |   |   \n---|---|---\n   |   |   "); // Initial board
-    if (game.xMove)
+    if (game.p1Move)
     {
         attrset(A_UNDERLINE);
         mvaddch(3, 13, game.player1); // Information on who is moving now
@@ -303,120 +297,187 @@ void resumeGame(void) {
     curs_set(2);
 }
 
+void playersMove(WINDOW* win) {
+    short pressed = wgetch(win);
+    switch (pressed)
+    {
+    case 27: // ESC key
+        if (menu(win))
+        {
+            endwin();
+            exit(0);
+        }
+        break;
+
+    case KEY_RIGHT:
+        if (game.cursor_y < 2)
+        {
+            game.cursor_y++;
+        }
+        setCursor(); // Moving the cursor to the next position
+        break;
+
+    case KEY_LEFT:
+        if (game.cursor_y > 0)
+        {
+            game.cursor_y--;
+        }
+        setCursor(); // Moving the cursor to the next position
+        break;
+
+    case KEY_UP:
+        if (game.cursor_x > 0)
+        {
+            game.cursor_x--;
+        }
+        setCursor(); // Moving the cursor to the next position
+        break;
+
+    case KEY_DOWN:
+        if (game.cursor_x < 2)
+        {
+            game.cursor_x++;
+        }
+        setCursor(); // Moving the cursor to the next position
+        break;
+
+    case 10: // ENTER key
+        if (game.board[game.cursor_x][game.cursor_y] == ' ') // Check if the position is empty
+        {
+            if (game.p1Move)
+            {
+                game.board[game.cursor_x][game.cursor_y] = game.player1;
+                game.p1Move = false;
+                attrset(A_UNDERLINE);
+                mvaddch(3, 13, game.player2); // Information on who is moving now
+                attroff(A_UNDERLINE);
+                updateBoard();
+            }
+            else
+            {
+                game.board[game.cursor_x][game.cursor_y] = game.player2;
+                game.p1Move = true;
+                attrset(A_UNDERLINE);
+                mvaddch(3, 13, game.player1); // Information on who is moving now
+                attroff(A_UNDERLINE);
+                updateBoard();
+            }
+        }
+        else
+        {
+            beep(); // Illegal move signal
+        }
+        break;
+
+    default:
+        break;
+    }
+}
+
+short minimax(short depth, bool isMaximizing) {
+    short result = checkWinner();
+
+    if (isMaximizing)
+    {
+        
+    }
+    
+    return 1;
+}
+
+void computersMove(win) {
+    short bestMove[2] = {-1, -1};
+    short bestScore = -INF;
+    for (short row = 0; row < size; row++) // Check all possible moves
+    {
+        for (short col = 0; col < size; col++)
+        {
+            if (game.board[row][col] == ' ') // Is the spot is available?
+            {
+                game.board[row][col] = game.player2;
+                short score = minimax(0, true);
+                game.board[row][col] = ' ';
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestMove[0] = row;
+                    bestMove[1] = col;
+                }
+            }
+        }
+    }
+    game.board[bestMove[0]][bestMove[1]] = game.player2;
+    game.p1Move = true;
+    attrset(A_UNDERLINE);
+    mvaddch(3, 13, game.player1); // Information on who is moving now
+    attroff(A_UNDERLINE);
+    game.cursor_x = bestMove[0];
+    game.cursor_y = bestMove[1];
+    updateBoard();
+}
+
+void gameEnd(WINDOW* win) {
+    short pressed = wgetch(win);
+    switch (pressed)
+    {
+    case 27: // ESC key
+        if (menu(win))
+        {
+            endwin();
+            exit(0);
+        }
+        // endwin(); // End of the program
+        // return 0;
+        break;
+
+    default:
+        curs_set(2);
+        clear();
+        resetBoard();
+        printBoard();
+        resetCursor();
+        break;
+    }
+}
+
 void p2p(WINDOW* win) {
     while (true)
     {
         if (!end()) // End-of-game check
         {
-            short pressed = wgetch(win);
-            switch (pressed)
-            {
-            case 27: // ESC key
-                if (menu(win))
-                {
-                    endwin();
-                    exit(0);
-                }
-                break;
-
-            case KEY_RIGHT:
-                if (game.cursor_y < 2)
-                {
-                    game.cursor_y++;
-                }
-                setCursor(); // Moving the cursor to the next position
-                break;
-
-            case KEY_LEFT:
-                if (game.cursor_y > 0)
-                {
-                    game.cursor_y--;
-                }
-                setCursor(); // Moving the cursor to the next position
-                break;
-
-            case KEY_UP:
-                if (game.cursor_x > 0)
-                {
-                    game.cursor_x--;
-                }
-                setCursor(); // Moving the cursor to the next position
-                break;
-
-            case KEY_DOWN:
-                if (game.cursor_x < 2)
-                {
-                    game.cursor_x++;
-                }
-                setCursor(); // Moving the cursor to the next position
-                break;
-
-            case 10: // ENTER key
-                if (game.board[game.cursor_x][game.cursor_y] == ' ') // Check if the position is empty
-                {
-                    if (game.xMove)
-                    {
-                        game.board[game.cursor_x][game.cursor_y] = game.player1;
-                        game.xMove = false;
-                        attrset(A_UNDERLINE);
-                        mvaddch(3, 13, game.player2); // Information on who is moving now
-                        attroff(A_UNDERLINE);
-                        updateBoard();
-                    }
-                    else
-                    {
-                        game.board[game.cursor_x][game.cursor_y] = game.player2;
-                        game.xMove = true;
-                        attrset(A_UNDERLINE);
-                        mvaddch(3, 13, game.player1); // Information on who is moving now
-                        attroff(A_UNDERLINE);
-                        updateBoard();
-                    }
-                }
-                else
-                {
-                    beep(); // Illegal move signal
-                }
-                break;
-
-            default:
-                break;
-            }
+            playersMove(win);
         }
         else
         {
-            short pressed = wgetch(win);
-            switch (pressed)
-            {
-            case 27: // ESC key
-                if (menu(win))
-                {
-                    endwin();
-                    exit(0);
-                }
-                // endwin(); // End of the program
-                // return 0;
-                break;
-
-            default:
-                curs_set(2);
-                clear();
-                resetBoard();
-                printBoard();
-                resetCursor();
-                break;
-            }
+            gameEnd(win);
         }
     }
 }
 
 void pve(WINDOW* win) {
-
+    while (true)
+    {
+        if (!end()) // End-of-game check
+        {
+            if (!game.p1Move)
+            {
+                computersMove(win);
+            }
+            else
+            {
+                playersMove(win);
+            }
+        }
+        else
+        {
+            gameEnd(win);
+        }
+    }
 }
 
 void newGame(WINDOW* win) {
     game.cursor_x = 1, game.cursor_y = 1; // Cursor position
-    game.xMove = true; // Moving player information
+    game.p1Move = true; // Moving player information
     game.gameStopped = true;
 
     resetBoard();
@@ -543,9 +604,6 @@ bool settings(WINDOW* win) {
             break;
 
         case KEY_LEFT:
-            settingsChange(option);
-            break;
-
         case KEY_RIGHT:
             settingsChange(option);
             break;
@@ -557,7 +615,7 @@ bool settings(WINDOW* win) {
             }
             break;
 
-        case 27:
+        case 27: // ESC
             goto exit_settings;
             break;
 
