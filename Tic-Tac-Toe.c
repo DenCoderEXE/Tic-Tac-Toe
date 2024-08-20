@@ -1,7 +1,7 @@
 // Denis Danilov
 
-//#include <PDCurses-master/curses.h>
-#include <ncurses.h>
+#include <pdcurses/curses.h>
+//#include <ncurses.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #define INF 999
