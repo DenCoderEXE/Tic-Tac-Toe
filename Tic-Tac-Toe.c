@@ -1,7 +1,6 @@
-// Denis Danilov
+// DenCoder.EXE
 
-#include <pdcurses/curses.h>
-//#include <ncurses.h>
+/*#include <ncurses.h>*/ #include <pdcurses/curses.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #define INF 999
@@ -103,10 +102,6 @@ char end(short pos[6]) {
             pos[3] = winCombinations[i][1][1];
             pos[4] = winCombinations[i][2][0];
             pos[5] = winCombinations[i][2][1];
-            // highlightWinner(winCombinations[i][0][0], winCombinations[i][0][1], 
-            //                 winCombinations[i][1][0], winCombinations[i][1][1], 
-            //                 winCombinations[i][2][0], winCombinations[i][2][1]);
-            // printWinner(game.board[winCombinations[i][2][0]][winCombinations[i][2][1]]);
             if (game.board[winCombinations[i][1][0]][winCombinations[i][1][1]] == game.player1)
             {
                 return game.player1;
@@ -133,6 +128,7 @@ char end(short pos[6]) {
     {
         return 'D';
     }
+
     return 'N';
 }
 
@@ -146,7 +142,7 @@ void printBoard(void) {
     clear();
     attrset(A_BOLD);
     mvaddstr(0, 0, "Tic-Tac-Toe\n");
-    mvaddstr(1, 0, "   |   |   \n---|---|---\n   |   |   \n---|---|---\n   |   |   "); // Initial board
+    mvaddstr(1, 0, "   |   |   \n---|---|---\n   |   |   \n---|---|---\n   |   |   "); // Print board
     if (game.p1Move)
     {
         attrset(A_UNDERLINE);
@@ -208,7 +204,6 @@ void highlightActiveOption(short option) {
             mvaddch(4, 2, ' ');
             mvaddch(4, 2 + 5, ' ');
             break;
-
         case 1:
             mvaddch(2, 0, '<');
             mvaddch(2, 0 + 9, '>');
@@ -222,7 +217,6 @@ void highlightActiveOption(short option) {
             mvaddch(4, 2, ' ');
             mvaddch(4, 2 + 5, ' ');
             break;
-
         case 2:
             mvaddch(3, 0, '<');
             mvaddch(3, 0 + 9, '>');
@@ -236,7 +230,6 @@ void highlightActiveOption(short option) {
             mvaddch(4, 2, ' ');
             mvaddch(4, 2 + 5, ' ');
             break;
-
         case 3:
             mvaddch(4, 2, '<');
             mvaddch(4, 2 + 5, '>');
@@ -250,7 +243,6 @@ void highlightActiveOption(short option) {
             mvaddch(3, 0, ' ');
             mvaddch(3, 0 + 9, ' ');
             break;
-
         default:
             break;
         }
@@ -269,7 +261,6 @@ void highlightActiveOption(short option) {
             mvaddch(3, 2, ' ');
             mvaddch(3, 2 + 5, ' ');
             break;
-
         case 1:
             mvaddch(2, 0, '<');
             mvaddch(2, 0 + 9, '>');
@@ -280,7 +271,6 @@ void highlightActiveOption(short option) {
             mvaddch(3, 2, ' ');
             mvaddch(3, 2 + 5, ' ');
             break;
-
         case 2:
             mvaddch(3, 2, '<');
             mvaddch(3, 2 + 5, '>');
@@ -291,7 +281,6 @@ void highlightActiveOption(short option) {
             mvaddch(2, 0, ' ');
             mvaddch(2, 0 + 9, ' ');
             break;
-
         default:
             break;
         }
@@ -304,6 +293,7 @@ void resumeGame(void) {
     {
         return;
     }
+
     clear();
     printBoard();
     for (short row = 0; row < size; row++)
@@ -328,7 +318,6 @@ void playersMove(WINDOW* win) {
             exit(0);
         }
         break;
-
     case KEY_RIGHT:
         if (game.cursor_y < 2)
         {
@@ -336,7 +325,6 @@ void playersMove(WINDOW* win) {
         }
         setCursor(); // Moving the cursor to the next position
         break;
-
     case KEY_LEFT:
         if (game.cursor_y > 0)
         {
@@ -344,7 +332,6 @@ void playersMove(WINDOW* win) {
         }
         setCursor(); // Moving the cursor to the next position
         break;
-
     case KEY_UP:
         if (game.cursor_x > 0)
         {
@@ -352,7 +339,6 @@ void playersMove(WINDOW* win) {
         }
         setCursor(); // Moving the cursor to the next position
         break;
-
     case KEY_DOWN:
         if (game.cursor_x < 2)
         {
@@ -360,7 +346,6 @@ void playersMove(WINDOW* win) {
         }
         setCursor(); // Moving the cursor to the next position
         break;
-
     case 10: // ENTER key
         if (game.board[game.cursor_x][game.cursor_y] == ' ') // Check if the position is empty
         {
@@ -388,7 +373,6 @@ void playersMove(WINDOW* win) {
             beep(); // Illegal move signal
         }
         break;
-
     default:
         break;
     }
@@ -416,7 +400,7 @@ short minimax(short depth, bool isMaximizing) {
     {
         return scores(result);
     }
-    
+
     if (isMaximizing) // Maximizing
     {
         short bestScore = -INF;
@@ -484,9 +468,11 @@ void bestMove() {
     }
     game.board[bestMove[0]][bestMove[1]] = game.player2;
     game.p1Move = true;
+
     attrset(A_UNDERLINE);
     mvaddch(3, 13, game.player1); // Information on who is moving now
     attroff(A_UNDERLINE);
+
     game.cursor_x = bestMove[0];
     game.cursor_y = bestMove[1];
     updateBoard();
@@ -505,48 +491,42 @@ void randomMove() {
         }
     }
     game.p1Move = true;
+
     attrset(A_UNDERLINE);
     mvaddch(3, 13, game.player1); // Information on who is moving now
     attroff(A_UNDERLINE);
+
     game.cursor_x = randomMove[0];
     game.cursor_y = randomMove[1];
     updateBoard();
 }
 
+short probability(Difficulty difficulty) { // Chance that the computer will make a random move
+    switch (difficulty)
+    {
+    case hard:
+        return 8; // 10%
+        break;
+    case normal:
+        return 6; // 30%
+        break;
+    case easy:
+        return 4; // 50%
+        break;
+    default:
+        break;
+    }
+}
+
 void computersMove() {
     short value = rand() % 10;
-    if (game.difficulty == hard)
+    if (value > probability(game.difficulty))
     {
-        if (value > 8)
-        {
-            randomMove();
-        }
-        else
-        {
-            bestMove();
-        }
+        randomMove();
     }
-    else if (game.difficulty == normal)
+    else
     {
-        if (value > 6)
-        {
-            randomMove();
-        }
-        else
-        {
-            bestMove();
-        }
-    }
-    else if (game.difficulty == easy)
-    {
-        if (value > 4)
-        {
-            randomMove();
-        }
-        else
-        {
-            bestMove();
-        }
+        bestMove();
     }
 }
 
@@ -560,10 +540,7 @@ void gameEnd(WINDOW* win) {
             endwin();
             exit(0);
         }
-        // endwin(); // End of the program
-        // return 0;
         break;
-
     default:
         curs_set(2);
         clear();
@@ -720,7 +697,6 @@ void settingsChange(short option, char direction) {
             refresh();
         }
         break;
-
     case 1:
         if (game.p2p_mode)
         {
@@ -735,7 +711,6 @@ void settingsChange(short option, char direction) {
             refresh();
         }
         break;
-
     case 2:
         if (direction == 'L')
         {
@@ -777,7 +752,6 @@ void settingsChange(short option, char direction) {
             }
         }
         break;
-
     default:
         break;
     }
@@ -837,7 +811,6 @@ bool settings(WINDOW* win) {
             }
             highlightActiveSettingsOption(option, win);
             break;
-
         case KEY_UP:
             if (option == 0)
             {
@@ -849,25 +822,21 @@ bool settings(WINDOW* win) {
             }
             highlightActiveSettingsOption(option, win);
             break;
-
         case KEY_LEFT:
             settingsChange(option, 'L');
             break;
         case KEY_RIGHT:
             settingsChange(option, 'R');
             break;
-
         case 10: // Enter
             if (option == 3)
             {
                 goto exit_settings;
             }
             break;
-
         case 27: // ESC
             goto exit_settings;
             break;
-
         default:
             break;
         }
@@ -908,7 +877,6 @@ restart:
                 }
                 highlightActiveOption(option);
                 break;
-
             case KEY_UP:
                 if (option == 0)
                 {
@@ -920,25 +888,22 @@ restart:
                 }
                 highlightActiveOption(option);
                 break;
-
             case 27: // ESC
                 resumeGame();
                 return false;
                 break;
-
             case 10: // Enter
+
                 switch (option)
                 {
                 case 0: // Resume
                     resumeGame();
                     return false;
                     break;
-
                 case 1: // New game
                     curs_set(2);
                     newGame(win);
                     break;
-
                 case 2: // Settings
                     if (settings(win)) // If need to restart menu
                     {
@@ -952,16 +917,14 @@ restart:
                     }
                     highlightActiveOption(2);
                     break;
-
                 case 3: // Exit
                     return true;
                     break;
-
                 default:
                     break;
                 }
-                break;
 
+                break;
             default:
                 break;
             }
@@ -986,7 +949,6 @@ restart:
                 }
                 highlightActiveOption(option);
                 break;
-
             case KEY_UP:
                 if (option == 0)
                 {
@@ -998,15 +960,14 @@ restart:
                 }
                 highlightActiveOption(option);
                 break;
-
             case 10: // Enter
+
                 switch (option)
                 {
                 case 0: // New game
                     curs_set(2);
                     newGame(win);
                     break;
-
                 case 1: // Settings
                     if (settings(win)) // If need to restart menu
                     {
@@ -1019,16 +980,14 @@ restart:
                     }
                     highlightActiveOption(1);
                     break;
-
                 case 2: // Exit
                     return true;
                     break;
-
                 default:
                     break;
                 }
-                break;
 
+                break;
             default:
                 break;
             }
