@@ -1,6 +1,6 @@
 // DenCoder.EXE
 
-/*#include <ncurses.h>*/ #include <pdcurses/curses.h>
+#include <ncurses.h> //#include <pdcurses/curses.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #define INF 999
