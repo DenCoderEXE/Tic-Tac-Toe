@@ -318,6 +318,8 @@ void playersMove(WINDOW* win) {
             exit(0);
         }
         break;
+    case 'd':
+    case 'D':
     case KEY_RIGHT:
         if (game.cursor_y < 2)
         {
@@ -325,6 +327,8 @@ void playersMove(WINDOW* win) {
         }
         setCursor(); // Moving the cursor to the next position
         break;
+    case 'a':
+    case 'A':
     case KEY_LEFT:
         if (game.cursor_y > 0)
         {
@@ -332,6 +336,8 @@ void playersMove(WINDOW* win) {
         }
         setCursor(); // Moving the cursor to the next position
         break;
+    case 'w':
+    case 'W':
     case KEY_UP:
         if (game.cursor_x > 0)
         {
@@ -339,6 +345,8 @@ void playersMove(WINDOW* win) {
         }
         setCursor(); // Moving the cursor to the next position
         break;
+    case 's':
+    case 'S':
     case KEY_DOWN:
         if (game.cursor_x < 2)
         {
@@ -346,6 +354,7 @@ void playersMove(WINDOW* win) {
         }
         setCursor(); // Moving the cursor to the next position
         break;
+    case ' ': // Space bar
     case 10: // ENTER key
         if (game.board[game.cursor_x][game.cursor_y] == ' ') // Check if the position is empty
         {
@@ -641,7 +650,7 @@ void highlightActiveSettingsOption(short option, WINDOW* win) {
     mvaddch(1, 20, ' '); // 1.Player
 
     mvaddch(2, 16, ' ');
-    mvaddch(2, 20, ' '); // PvP mode
+    mvaddch(2, 22, ' '); // PvP mode
 
     mvaddch(3, 16, ' ');
     if (game.difficulty != normal)
@@ -653,13 +662,17 @@ void highlightActiveSettingsOption(short option, WINDOW* win) {
     mvaddch(4, 7, ' ');
     mvaddch(4, 12, ' '); // Back
 
-    if (option < 2)
+    switch (option)
     {
+    case 0:
         mvaddch(option + 1, 16, '<');
         mvaddch(option + 1, 20, '>');
-    }
-    else if (option == 2)
-    {
+        break;
+    case 1:
+        mvaddch(option + 1, 16, '<');
+        mvaddch(option + 1, 22, '>');
+        break;
+    case 2:
         mvaddch(option + 1, 16, '<');
         if (game.difficulty == normal)
         {
@@ -669,11 +682,11 @@ void highlightActiveSettingsOption(short option, WINDOW* win) {
         {
             mvaddch(option + 1, 23, '>');
         }
-    }
-    else
-    {
+        break;
+    default:
         mvaddch(option + 1, 7, '<');
         mvaddch(option + 1, 12, '>');
+        break;
     }
 }
 
@@ -698,16 +711,17 @@ void settingsChange(short option, char direction) {
         }
         break;
     case 1:
+        mvaddstr(2, 16, "<[   ]>");
         if (game.p2p_mode)
         {
             game.p2p_mode = false;
-            mvaddch(2, 18, 'N');
+            mvaddstr(2, 18, "PvE");
             refresh();
         }
         else
         {
             game.p2p_mode = true;
-            mvaddch(2, 18, 'Y');
+            mvaddstr(2, 18, "PvP");
             refresh();
         }
         break;
@@ -764,18 +778,18 @@ bool settings(WINDOW* win) {
     curs_set(0);
     clear();
     addstr("      Settings:\n");
-    addstr("1.Player");
+    addstr("First move");
     addstr("\t<[");
     addch(game.player1);
     addstr("]>\n");
-    addstr("PvP mode\t [");
+    addstr("Game mode\t [");
     if (game.p2p_mode)
     {
-        addch('Y');
+        addstr("PvP");
     }
     else
     {
-        addch('N');
+        addstr("PvE");
     }
     addstr("] \n");
     addstr("Difficulty\t [");
@@ -800,6 +814,8 @@ bool settings(WINDOW* win) {
         short pressed = wgetch(win);
         switch (pressed)
         {
+        case 's':
+        case 'S':
         case KEY_DOWN:
             if (option == 3)
             {
@@ -811,6 +827,8 @@ bool settings(WINDOW* win) {
             }
             highlightActiveSettingsOption(option, win);
             break;
+        case 'w':
+        case 'W':
         case KEY_UP:
             if (option == 0)
             {
@@ -822,12 +840,17 @@ bool settings(WINDOW* win) {
             }
             highlightActiveSettingsOption(option, win);
             break;
+        case 'a':
+        case 'A':
         case KEY_LEFT:
             settingsChange(option, 'L');
             break;
+        case 'd':
+        case 'D':
         case KEY_RIGHT:
             settingsChange(option, 'R');
             break;
+        case ' ': // Space bar
         case 10: // Enter
             if (option == 3)
             {
@@ -866,6 +889,8 @@ restart:
             short pressed = wgetch(win);
             switch (pressed)
             {
+            case 's':
+            case 'S':
             case KEY_DOWN:
                 if (option == 3)
                 {
@@ -877,6 +902,8 @@ restart:
                 }
                 highlightActiveOption(option);
                 break;
+            case 'w': 
+            case 'W':
             case KEY_UP:
                 if (option == 0)
                 {
@@ -892,8 +919,8 @@ restart:
                 resumeGame();
                 return false;
                 break;
+            case ' ': // Space bar
             case 10: // Enter
-
                 switch (option)
                 {
                 case 0: // Resume
@@ -923,7 +950,6 @@ restart:
                 default:
                     break;
                 }
-
                 break;
             default:
                 break;
@@ -938,6 +964,8 @@ restart:
             short pressed = wgetch(win);
             switch (pressed)
             {
+            case 's':
+            case 'S':
             case KEY_DOWN:
                 if (option == 2)
                 {
@@ -949,6 +977,8 @@ restart:
                 }
                 highlightActiveOption(option);
                 break;
+            case 'w':
+            case 'W':
             case KEY_UP:
                 if (option == 0)
                 {
@@ -960,8 +990,8 @@ restart:
                 }
                 highlightActiveOption(option);
                 break;
+            case ' ': // Space bar
             case 10: // Enter
-
                 switch (option)
                 {
                 case 0: // New game
@@ -986,7 +1016,6 @@ restart:
                 default:
                     break;
                 }
-
                 break;
             default:
                 break;
@@ -1009,13 +1038,11 @@ void main(void) {
         init_pair(2, COLOR_WHITE, COLOR_RED);
         init_pair(3, COLOR_WHITE, COLOR_CYAN);
     }
-
     game.player1 = 'X';
     game.player2 = 'O';
     game.gameStopped = false;
     game.p2p_mode = false;
     game.difficulty = normal;
-
     if (menu(win))
     {
         endwin();

@@ -27,17 +27,17 @@ Tic-Tac-Toe game made in C programming language. Graphics is realized by “ncur
 ## Controls:
 
 	Game Controls: 
-	- Arrows to select a cell on the game board
-	- Enter to select a cell for a move
+	- Arrows (or WASD) to select a cell on the game board
+	- Enter (or space bar) to select a cell for a move
 	- ESC to exit the menu
 
 	Menu Controls: 
-	- up and down arrows to select an option
-	- Enter to select an option
+	- up and down arrows (or W and S keys) to select an option
+	- Enter (or space bar) to select an option
 	- ESC to return to the game
 
 	Settings Controls: 
-	- up and down arrows to select an option
-	- Left and right arrows for changing parameters
+	- up and down arrows (or W and S keys) to select an option
+	- Left and right arrows (or A and D keys) for changing parameters
 
 	- ESC to return to the menu
