@@ -3,7 +3,7 @@ Tic-Tac-Toe game made in C programming language. Graphics is realized by “ncur
 
 ## The game features:
 - console-based user interface
-- keyboard control (arrow keys, enter and esc)
+- keyboard control (arrow keys, enter, esc, WASD keys, space bar)
 - PvP mode for playing with another user
 
 ![PvP](https://github.com/DenCoderEXE/Tic-Tac-Toe/blob/main/src/PvP.gif)
@@ -39,5 +39,4 @@ Tic-Tac-Toe game made in C programming language. Graphics is realized by “ncur
 	Settings Controls: 
 	- up and down arrows (or W and S keys) to select an option
 	- Left and right arrows (or A and D keys) for changing parameters
-
 	- ESC to return to the menu
